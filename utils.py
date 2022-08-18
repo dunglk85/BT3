@@ -7,6 +7,7 @@ def load_data(file_name):
     y = np.array(dat['price']).reshape((m,))
     col = np.ones((m, 1))
     X = dat.to_numpy(dat.drop(columns=['price'], inplace=True))
+    print(X.shape)
     X = np.concatenate((X, col), axis=1)
     y = y/1000000
     return X, y

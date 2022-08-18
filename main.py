@@ -17,11 +17,12 @@ if __name__ == '__main__':
 
     # print train and test set shapes
     print(f"X_train:{X_train.shape}\ny_train:{y_train.shape}")
-
-    regressor = Regressor()
+    w_init = np.repeat(1, X_train.shape[1]).reshape((X_train.shape[1],))
+    regressor = Regressor(w_init)
     # call the fit method
     regressor.fit(X_train, y_train)
-
+    print("Gradient Norm:", regressor.grad_norm)
+    print("Inner count:", regressor.inner_count)
     train_score = regressor.score(X_train, y_train)
     test_score = regressor.score(X_test, y_test)
 

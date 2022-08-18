@@ -3,182 +3,160 @@ import matplotlib.pyplot as plt
 from numpy import linalg
 
 class Regressor():
-    # init methodd initializes all parameters needed to implement regression
-    def __init__(self, learning_rate=0.01, tol=0.000001, max_iters=1000000):
-        self.W = None
-        self.__lr = learning_rate
-        self.__tol = tol
-        self.__n = None
-        self.__m = None
-        self.__costs = []
-        self.__iterations = []
-        self.__max_iters = max_iters
-        self.__inner_count = None
-        np.random.seed(np.random.randint(100))
-    # random initialization of weights and bias
-    def __init_w(self):
-        self.W = np.random.randn(self.__n)
+    def __init__(self, w_init, learning_rate=0.6, tol=1e-4, max_iters=1000000, check_after=10):
+        self.W = w_init
+        self.lr = learning_rate
+        self.tol = tol
+        self.check_af = check_after
+        self.n = None
+        self.m = None
+        self.costs = []
+        self.iterations = []
+        self.max_iters = max_iters
+        self.inner_count = None
+        self.grad_norm = None
+        self.H = None
+        self.ATb = None
+        self.btb = None
+
+    def cost(self, w):
+        return np.dot(np.dot(w.T, self.H), w)/2 - np.dot(w.T, self.ATb) + self.btb/2
+    def grad(self, w):
+        return np.dot(self.H, w) - self.ATb
+
+    def get_data_info(self, X, y):
+        self.m, self.n = X.shape
+        self.H = np.dot(X.T, X)/self.m
+        self.ATb = np.dot(X.T, y)/self.m
+        self.btb = np.dot(y.T,y)/self.m
+
+    def check(self, g):
+        self.grad_norm = linalg.norm(g)
+        if self.grad_norm < self.tol:
+            return True
+        return False
 
 
-    # fit the model to the dataset: training process
     def fit(self, X, y):
         self.back_tracking_newton(X,y)
     # test the model on test data
     def fix_step_gradient(self, X, y):
-        self.__m, self.__n = X.shape
-        self.__init_w()
-        loss = np.dot(X, self.W) - y
-        cost = np.sum(np.square(loss)) / (2 * self.__m)
-        dW = np.dot(X.T, loss) / self.__m
-        self.__costs.append(cost)
-        self.__iterations.append(0)
-        for i in range(self.__max_iters):
-            self.W = self.W - self.__lr * dW
-            loss = np.dot(X, self.W) - y
-            cost = np.sum(np.square(loss)) / (2 * self.__m)
-            if self.__costs[-1] - cost < self.__tol*cost:
-                break
-            self.__costs.append(cost)
-            self.__iterations.append(i + 1)
-            dW = np.dot(X.T, loss) / self.__m
+        self.get_data_info(X, y)
+        for i in range(self.max_iters):
+            dW = self.grad(self.W)
+            if i % self.check_af == 0:
+                if self.check(dW):
+                    break
+            self.W = self.W - self.lr*dW
+            cost = self.cost(self.W)
+            self.costs.append(cost)
+            self.iterations.append(i)
 
     def back_tracking_gradient(self,X,y):
-        self.__inner_count = 0
-        self.__m, self.__n = X.shape
-        self.__init_w()
-        loss = np.dot(X, self.W) - y
-        cost = np.sum(np.square(loss)) / (2 * self.__m)
-        dW = np.dot(X.T, loss) / self.__m
-        self.__costs.append(cost)
-        self.__iterations.append(0)
-        for i in range(self.__max_iters):
-            t = self.__lr
-            self.W = self.W - t * dW
-            loss = np.dot(X, self.W) - y
-            cost = np.sum(np.square(loss)) / (2 * self.__m)
-            dW = np.dot(X.T, loss) / self.__m
-            square_norm_dW = np.dot(dW.T,dW)
-            while cost > self.__costs[-1] - 0.5*t * square_norm_dW:
-                self.__inner_count += 1
-                print(self.__inner_count)
+        self.inner_count = 0
+        self.get_data_info(X, y)
+        cost = self.cost(self.W)
+        self.costs.append(cost)
+        self.iterations.append(0)
+        for i in range(self.max_iters):
+            dW = self.grad(self.W)
+            if self.check(dW):
+                break
+            t = 1
+            cost = self.cost(self.W)
+            while cost > self.costs[-1] - 0.5*t * self.grad_norm*self.grad_norm and t > 1e-6:
+                self.inner_count += 1
                 t = 0.5*t
                 self.W = self.W - t * dW
-                loss = np.dot(X, self.W) - y
-                cost = np.sum(np.square(loss)) / (2 * self.__m)
+                cost = self.cost(self.W)
 
-            if self.__costs[-1] - cost < self.__tol*cost:
-                print("inner", self.__inner_count)
-                break
-            self.__costs.append(cost)
-            self.__iterations.append(i + 1)
+            self.costs.append(cost)
+            self.iterations.append(i + 1)
 
     def fix_step_accelerated(self, X, y):
-        self.__m, self.__n = X.shape
-        self.__init_w()
-        loss = np.dot(X, self.W) - y
-        cost = np.sum(np.square(loss)) / (2 * self.__m)
-        self.__costs.append(cost)
-        self.__iterations.append(0)
+        self.get_data_info(X, y)
+        cost = self.cost(self.W)
+        self.costs.append(cost)
+        self.iterations.append(0)
         pre_W = self.W
-        for i in range(self.__max_iters):
-            v = self.W + i * (self.W - pre_W)/ (i + 3)
-            loss_v = np.dot(X, v) - y
-            dV = np.dot(X.T, loss_v) / self.__m
+        for i in range(self.max_iters):
+            v = self.W + i * (self.W - pre_W)/(i + 3)
+            dV = self.grad(v)
+            if i % self.check_af == 0:
+                if self.check(dV):
+                    break
             pre_W = self.W
-            self.W = v - self.__lr * dV
-            loss = np.dot(X, self.W) - y
-            cost = np.sum(np.square(loss)) / (2 * self.__m)
-            if self.__costs[-1] - cost < self.__tol * cost:
-                break
-            self.__costs.append(cost)
-            self.__iterations.append(i + 1)
+            self.W = v - self.lr * dV
+            cost = self.cost(self.W)
+            self.costs.append(cost)
+            self.iterations.append(i + 1)
 
     def back_tracking_accelerated(self, X, y):
-        self.__inner_count = 0
-        self.__m, self.__n = X.shape
-        self.__init_w()
-        loss = np.dot(X, self.W) - y
-        cost = np.sum(np.square(loss)) / (2 * self.__m)
-        self.__costs.append(cost)
-        self.__iterations.append(0)
+        self.inner_count = 0
+        self.get_data_info(X, y)
+        cost = self.cost(self.W)
+        self.costs.append(cost)
+        self.iterations.append(0)
         pre_W = self.W
-        t = 1
-        for i in range(self.__max_iters):
+        for i in range(self.max_iters):
             v = self.W + i * (self.W - pre_W)/ (i + 3)
-            loss_v = np.dot(X, v) - y
-            cost_v = np.sum(np.square(loss_v)) / (2 * self.__m)
-            dV = np.dot(X.T, loss_v) / self.__m
-            pre_W = self.W
-            self.W = v - t * dV
-            loss = np.dot(X, self.W) - y
-            cost = np.sum(np.square(loss)) / (2 * self.__m)
-            square_norm = np.dot(dV.T, dV)
-            while cost > cost_v - 0.5*t*square_norm:
-                t = 0.9*t
-                self.W = v - t * dV
-                loss = np.dot(X, self.W) - y
-                cost = np.sum(np.square(loss)) / (2 * self.__m)
-                self.__inner_count += 1
-            if self.__costs[-1] - cost < self.__tol * cost:
-                print(self.__inner_count)
+            dV = self.grad(v)
+            if self.check(dV):
                 break
-            self.__costs.append(cost)
-            self.__iterations.append(i + 1)
+            t = 0.65
+            pre_W = self.W
+            cost = self.cost(self.W)
+            while cost > self.costs[-1] - 0.5 * t * self.grad_norm * self.grad_norm and t > 1e-6:
+                self.inner_count += 1
+                t = 0.5 * t
+                self.W = self.W - t * dV
+                cost = self.cost(self.W)
+
+            self.costs.append(cost)
+            self.iterations.append(i)
 
     def fix_step_newton(self, X, y):
-        self.__m, self.__n = X.shape
-        self.__init_w()
-        loss = np.dot(X, self.W) - y
-        cost = np.sum(np.square(loss)) / (2 * self.__m)
-        dW = np.dot(X.T, loss) / self.__m
-        hW = np.dot(X.T, X)/self.__m
-        inv_h = linalg.inv(hW)
-        self.__costs.append(cost)
-        self.__iterations.append(0)
-        for i in range(self.__max_iters):
-            self.W = self.W - np.dot(inv_h,dW)
-            loss = np.dot(X, self.W) - y
-            cost = np.sum(np.square(loss)) / (2 * self.__m)
-            if self.__costs[-1] - cost < self.__tol*cost:
-                break
-            self.__costs.append(cost)
-            self.__iterations.append(i + 1)
-            dW = np.dot(X.T, loss) / self.__m
+        self.get_data_info(X, y)
+        inv_h = linalg.inv(self.H)
+        for i in range(self.max_iters):
+            dW = self.grad(self.W)
+            if i % self.check_af == 0:
+                if self.check(dW):
+                    break
+            self.W = self.W - np.dot(inv_h, dW)
+            cost = self.cost(self.W)
+            self.costs.append(cost)
+            self.iterations.append(i)
+
 
     def back_tracking_newton(self, X, y):
-        self.__m, self.__n = X.shape
-        self.__init_w()
-        loss = np.dot(X, self.W) - y
-        cost = np.sum(np.square(loss)) / (2 * self.__m)
-        dW = np.dot(X.T, loss) / self.__m
-        hW = np.dot(X.T, X) / self.__m
-        inv_h = linalg.inv(hW)
-        self.__costs.append(cost)
-        self.__iterations.append(0)
-        for i in range(self.__max_iters):
-            v = - np.dot(inv_h, dW)
-            t = 1
-            self.W = self.W + t*v
-            loss = np.dot(X, self.W) - y
-            cost = np.sum(np.square(loss)) / (2 * self.__m)
-            squ = np.dot(dW.T, v)
-            while cost > self.__costs[-1] + 0.5*t*squ:
-                t = 0.4*t
-                self.W = self.W + t * v
-                loss = np.dot(X, self.W) - y
-                cost = np.sum(np.square(loss)) / (2 * self.__m)
-                print(cost)
-            if self.__costs[-1] - cost < self.__tol * cost:
+        self.get_data_info(X, y)
+        inv_h = linalg.inv(self.H)
+        self.inner_count = 0
+        cost = self.cost(self.W)
+        self.costs.append(cost)
+        self.iterations.append(0)
+        for i in range(self.max_iters):
+            dW = self.grad(self.W)
+            if self.check(dW):
                 break
-            self.__costs.append(cost)
-            self.__iterations.append(i + 1)
-            dW = np.dot(X.T, loss) / self.__m
+            t = 1
+            cost = self.cost(self.W)
+            while cost > self.costs[-1] - 0.5 * t * self.grad_norm * self.grad_norm and t > 1e-6:
+                self.inner_count += 1
+                t = 0.5 * t
+                self.W = self.W - t*np.dot(inv_h, dW)
+                cost = self.cost(self.W)
+            self.costs.append(cost)
+            self.iterations.append(i+1)
+
+
     def predict(self,X):
         return np.dot(X,self.W)
     # plot the iterations vs cost curves
     def plot(self,figsize=(7,5)):
         plt.figure(figsize=figsize)
-        plt.plot(self.__iterations,self.__costs)
+        plt.plot(self.iterations, self.costs)
         plt.xlabel('Iterations')
         plt.ylabel('Cost')
         plt.title("Iterations vs Cost")
