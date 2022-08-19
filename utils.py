@@ -9,5 +9,5 @@ def load_data(file_name):
     X = dat.to_numpy(dat.drop(columns=['price'], inplace=True))
     print(X.shape)
     X = np.concatenate((X, col), axis=1)
-    y = y/1000000
+    y = y/1e6
     return X, y
