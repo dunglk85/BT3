@@ -17,12 +17,13 @@ if __name__ == '__main__':
 
     print(f"X_train:{X_train.shape}\ny_train:{y_train.shape}")
     w_init = np.repeat(0, X_train.shape[1]).reshape((X_train.shape[1],))
-    lrs = [0.2, 0.5]
-    for lr in lrs:
-        regressor = Regressor(w_init, learning_rate=lr, check_stop=False)
-        algs = ['bg']
-        save_data(regressor, X_train, y_train, algs)
-        tols = [1e-5, 1e-10]
-        for tol in tols:
-            regressor = Regressor(w_init, learning_rate=lr, tol=tol)
-            save_info(regressor, X_train, y_train, algs)
+    algs = ['bac']
+    for a in algs:
+        lrs = [0.2, 0.5]
+        for lr in lrs:
+            regressor = Regressor(w_init, learning_rate=lr, check_stop=False, max_iters=10000)
+            save_cost_al(regressor, X_train, y_train, a)
+            tols = [1e-4, 1e-6]
+            for tol in tols:
+                regressor = Regressor(w_init, learning_rate=lr, tol=tol)
+                save_info_al(regressor, X_train, y_train, a)

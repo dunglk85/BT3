@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from numpy import linalg
 
 class Regressor():
-    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=1000000, check_stop = True):
+    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=100000, check_stop = True):
         self.W = w_init
         self.lr = learning_rate
         self.tol = tol
@@ -58,13 +58,13 @@ class Regressor():
         self.get_data_info(X, y)
         costs = []
         for i in range(self.max_iters+1):
+            cost = self.cost(self.W)
+            costs.append(cost)
             dW = self.grad(self.W)
             if i % self.check_af == 0:
                 if self.check(dW):
                     break
             self.W = self.W - self.lr*dW.T
-            cost = self.cost(self.W)
-            costs.append(cost)
         return costs
     def back_tracking_gradient(self,X,y):
         costs = []
@@ -79,7 +79,7 @@ class Regressor():
             self.W = self.W - self.lr * dW.T
             next_cost = self.cost(self.W)
             t = self.lr
-            while next_cost > costs[-1] - 0.5*t * self.square_norm:
+            while next_cost > costs[-1] - 0.5*t * self.square_norm and t > 1e-8:
                 self.inner_count += 1
                 t = 0.5*t
                 self.W = self.W - t * dW.T
@@ -110,6 +110,7 @@ class Regressor():
         cost = self.cost(self.W)
         costs.append(cost)
         pre_W = self.W
+        t = 1
         for i in range(self.max_iters):
             v = self.W + i * (self.W - pre_W)/ (i + 3)
             dV = self.grad(v)
@@ -118,10 +119,9 @@ class Regressor():
             pre_W = self.W
             self.W = self.W - self.lr * dV.T
             next_cost = self.cost(self.W)
-            t = self.lr
-            while next_cost > costs[-1] - 0.5 * t * self.square_norm:
+            while next_cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-8:
                 self.inner_count += 1
-                t = 0.5 * t
+                t = 0.8 * t
                 self.W = self.W - t * dV.T
                 next_cost = self.cost(self.W)
             costs.append(next_cost)
@@ -131,9 +131,9 @@ class Regressor():
         self.get_data_info(X, y)
         inv_h = linalg.inv(self.H)
         for i in range(self.max_iters+1):
-            dW = self.grad(self.W)
             cost = self.cost(self.W)
             costs.append(cost)
+            dW = self.grad(self.W)
             if self.check(dW):
                 break
             self.W = self.W - np.dot(inv_h, dW)
@@ -153,7 +153,7 @@ class Regressor():
             self.W = self.W - np.dot(inv_h, dW)
             next_cost = self.cost(self.W)
             t = 1
-            while next_cost > costs[-1] - 0.5 * t * self.square_norm:
+            while next_cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-8:
                 self.inner_count += 1
                 t = 0.5 * t
                 self.W = self.W - t*np.dot(inv_h, dW)
