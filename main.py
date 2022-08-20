@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
     print(f"X_train:{X_train.shape}\ny_train:{y_train.shape}")
     w_init = np.repeat(0, X_train.shape[1]).reshape((X_train.shape[1],))
-    algs = ['bac']
+    algs = ['gd','bgd','acc','bac','nt','bnt']
     for a in algs:
         lrs = [0.2, 0.5]
         for lr in lrs:
