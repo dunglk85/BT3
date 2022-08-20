@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from numpy import linalg
 
 class Regressor():
-    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=10000, check_stop = True, s_init = 2):
+    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=1000000, check_stop = True):
         self.W = w_init
         self.lr = learning_rate
         self.tol = tol
@@ -19,7 +19,6 @@ class Regressor():
         self.ATb = None
         self.btb = None
         self.check_stop = check_stop
-        self.s_init = s_init
 
     def cost(self, w):
         return np.dot(np.dot(w.T, self.H), w)/2 - np.dot(w.T, self.ATb) + self.btb/2
@@ -77,14 +76,15 @@ class Regressor():
             dW = self.grad(self.W)
             if self.check(dW):
                 break
-            t = 2*self.lr
-            cost = costs[-1]
-            while cost > costs[-1] - 0.5*t * self.square_norm and t > 1e-6:
+            self.W = self.W - self.lr * dW.T
+            next_cost = self.cost(self.W)
+            t = self.lr
+            while next_cost > costs[-1] - 0.5*t * self.square_norm:
                 self.inner_count += 1
                 t = 0.5*t
                 self.W = self.W - t * dW.T
-                cost = self.cost(self.W)
-            costs.append(cost)
+                next_cost = self.cost(self.W)
+            costs.append(next_cost)
         return costs
     def fix_step_accelerated(self, X, y):
         costs = []
@@ -116,14 +116,15 @@ class Regressor():
             if self.check(dV):
                 break
             pre_W = self.W
-            t = 2*self.lr
-            cost = costs[-1]
-            while cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-6:
+            self.W = self.W - self.lr * dV.T
+            next_cost = self.cost(self.W)
+            t = self.lr
+            while next_cost > costs[-1] - 0.5 * t * self.square_norm:
                 self.inner_count += 1
                 t = 0.5 * t
                 self.W = self.W - t * dV.T
-                cost = self.cost(self.W)
-            costs.append(cost)
+                next_cost = self.cost(self.W)
+            costs.append(next_cost)
         return costs
     def fix_step_newton(self, X, y):
         costs = []
@@ -131,12 +132,11 @@ class Regressor():
         inv_h = linalg.inv(self.H)
         for i in range(self.max_iters+1):
             dW = self.grad(self.W)
-            if i % self.check_af == 0:
-                if self.check(dW):
-                    break
-            self.W = self.W - np.dot(inv_h, dW)
             cost = self.cost(self.W)
             costs.append(cost)
+            if self.check(dW):
+                break
+            self.W = self.W - np.dot(inv_h, dW)
         return costs
 
     def back_tracking_newton(self, X, y):
@@ -150,14 +150,15 @@ class Regressor():
             dW = self.grad(self.W)
             if self.check(dW):
                 break
-            cost = costs[-1]
-            t = self.s_init
-            while cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-6:
+            self.W = self.W - np.dot(inv_h, dW)
+            next_cost = self.cost(self.W)
+            t = 1
+            while next_cost > costs[-1] - 0.5 * t * self.square_norm:
                 self.inner_count += 1
                 t = 0.5 * t
                 self.W = self.W - t*np.dot(inv_h, dW)
-                cost = self.cost(self.W)
-            costs.append(cost)
+                next_cost = self.cost(self.W)
+            costs.append(next_cost)
         return costs
 
     def predict(self,X):

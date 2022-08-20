@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 from utils import *
 from linear_regression import *
-import time
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -17,10 +17,12 @@ if __name__ == '__main__':
 
     print(f"X_train:{X_train.shape}\ny_train:{y_train.shape}")
     w_init = np.repeat(0, X_train.shape[1]).reshape((X_train.shape[1],))
-    lrs = [0.1,0.2,0.4,0.8]
+    lrs = [0.2, 0.5]
     for lr in lrs:
-        inits = [0.8,1.6,2]
-        for ini in inits:
-            regressor = Regressor(w_init, check_stop=False, learning_rate=lr,s_init=ini)
-            algs = ['bg', 'bgd', 'acc', 'bac', 'nt', 'bnt']
-            save_data(regressor, X_train, y_train, algs)
+        regressor = Regressor(w_init, learning_rate=lr, check_stop=False)
+        algs = ['bg']
+        save_data(regressor, X_train, y_train, algs)
+        tols = [1e-5, 1e-10]
+        for tol in tols:
+            regressor = Regressor(w_init, learning_rate=lr, tol=tol)
+            save_info(regressor, X_train, y_train, algs)
