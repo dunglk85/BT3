@@ -17,5 +17,10 @@ if __name__ == '__main__':
 
     print(f"X_train:{X_train.shape}\ny_train:{y_train.shape}")
     w_init = np.repeat(0, X_train.shape[1]).reshape((X_train.shape[1],))
-    regressor = Regressor(w_init,check_stop=False)
-    save_data(regressor,X_train,y_train)
+    lrs = [0.1,0.2,0.4,0.8]
+    for lr in lrs:
+        inits = [0.8,1.6,2]
+        for ini in inits:
+            regressor = Regressor(w_init, check_stop=False, learning_rate=lr,s_init=ini)
+            algs = ['bg', 'bgd', 'acc', 'bac', 'nt', 'bnt']
+            save_data(regressor, X_train, y_train, algs)

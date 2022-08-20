@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from numpy import linalg
 
 class Regressor():
-    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=10000, check_stop = True):
+    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=10000, check_stop = True, s_init = 2):
         self.W = w_init
         self.lr = learning_rate
         self.tol = tol
@@ -19,6 +19,7 @@ class Regressor():
         self.ATb = None
         self.btb = None
         self.check_stop = check_stop
+        self.s_init = s_init
 
     def cost(self, w):
         return np.dot(np.dot(w.T, self.H), w)/2 - np.dot(w.T, self.ATb) + self.btb/2
@@ -150,7 +151,7 @@ class Regressor():
             if self.check(dW):
                 break
             cost = costs[-1]
-            t = 2
+            t = self.s_init
             while cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-6:
                 self.inner_count += 1
                 t = 0.5 * t

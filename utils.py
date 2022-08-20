@@ -12,12 +12,11 @@ def load_data(file_name):
     y = y/1e6
     return X, y
 
-def save_data(reg, X,y):
-    algs = ['bg','bgd','acc','bac','nt','bnt']
+def save_data(reg, X,y, algs):
     d = {}
     for a in algs:
         d[a] = reg.fit(X,y,a)
     df = pd.DataFrame(data=d)
-    file_name = 'output_cost4.csv'
+    file_name = f'output_cost_lr_{reg.lr}_{reg.s_init}.csv'
     df.to_csv(file_name, index=False)
 
