@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from numpy import linalg
 
 class Regressor():
-    def __init__(self, w_init, learning_rate=0.5, tol=1e-4, max_iters=1000000, check_after=10):
+    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=10000, check_stop = True):
         self.W = w_init
         self.lr = learning_rate
         self.tol = tol
-        self.check_af = check_after
+        self.check_af = 10
         self.n = None
         self.m = None
         self.costs = []
@@ -18,9 +18,10 @@ class Regressor():
         self.H = None
         self.ATb = None
         self.btb = None
+        self.check_stop = check_stop
 
     def cost(self, w):
-        return np.dot(np.dot(w.T, self.H), w) - 2*np.dot(w.T, self.ATb) + self.btb
+        return np.dot(np.dot(w.T, self.H), w)/2 - np.dot(w.T, self.ATb) + self.btb/2
     def grad(self, w):
         return np.dot(self.H, w) - self.ATb
 
@@ -33,8 +34,9 @@ class Regressor():
     def check(self, g):
         norm = linalg.norm(g)
         self.square_norm = norm*norm
-        if norm < self.tol:
-            return True
+        if self.check_stop:
+            if norm < self.tol:
+                return True
         return False
 
 
@@ -55,7 +57,7 @@ class Regressor():
     def fix_step_gradient(self, X, y):
         self.get_data_info(X, y)
         costs = []
-        for i in range(self.max_iters):
+        for i in range(self.max_iters+1):
             dW = self.grad(self.W)
             if i % self.check_af == 0:
                 if self.check(dW):
@@ -63,7 +65,6 @@ class Regressor():
             self.W = self.W - self.lr*dW.T
             cost = self.cost(self.W)
             costs.append(cost)
-            # self.iterations.append(i)
         return costs
     def back_tracking_gradient(self,X,y):
         costs = []
@@ -71,13 +72,11 @@ class Regressor():
         self.get_data_info(X, y)
         cost = self.cost(self.W)
         costs.append(cost)
-        # self.iterations.append(i)
-
         for i in range(self.max_iters):
             dW = self.grad(self.W)
             if self.check(dW):
                 break
-            t = 1
+            t = 2*self.lr
             cost = costs[-1]
             while cost > costs[-1] - 0.5*t * self.square_norm and t > 1e-6:
                 self.inner_count += 1
@@ -85,14 +84,12 @@ class Regressor():
                 self.W = self.W - t * dW.T
                 cost = self.cost(self.W)
             costs.append(cost)
-            # self.iterations.append(i)
         return costs
     def fix_step_accelerated(self, X, y):
         costs = []
         self.get_data_info(X, y)
         cost = self.cost(self.W)
         costs.append(cost)
-        # self.iterations.append(i)
         pre_W = self.W
         for i in range(self.max_iters):
             v = self.W + i * (self.W - pre_W)/(i + 3)
@@ -104,7 +101,6 @@ class Regressor():
             self.W = v - self.lr * dV.T
             cost = self.cost(self.W)
             costs.append(cost)
-            # self.iterations.append(i)
         return costs
     def back_tracking_accelerated(self, X, y):
         costs = []
@@ -112,7 +108,6 @@ class Regressor():
         self.get_data_info(X, y)
         cost = self.cost(self.W)
         costs.append(cost)
-        # self.iterations.append(i)
         pre_W = self.W
         for i in range(self.max_iters):
             v = self.W + i * (self.W - pre_W)/ (i + 3)
@@ -120,22 +115,20 @@ class Regressor():
             if self.check(dV):
                 break
             pre_W = self.W
-            t = 0.5
+            t = 2*self.lr
             cost = costs[-1]
             while cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-6:
                 self.inner_count += 1
                 t = 0.5 * t
                 self.W = self.W - t * dV.T
                 cost = self.cost(self.W)
-
             costs.append(cost)
-            # self.iterations.append(i)
         return costs
     def fix_step_newton(self, X, y):
         costs = []
         self.get_data_info(X, y)
         inv_h = linalg.inv(self.H)
-        for i in range(self.max_iters):
+        for i in range(self.max_iters+1):
             dW = self.grad(self.W)
             if i % self.check_af == 0:
                 if self.check(dW):
@@ -143,7 +136,6 @@ class Regressor():
             self.W = self.W - np.dot(inv_h, dW)
             cost = self.cost(self.W)
             costs.append(cost)
-            # self.iterations.append(i)
         return costs
 
     def back_tracking_newton(self, X, y):
@@ -153,20 +145,18 @@ class Regressor():
         self.inner_count = 0
         cost = self.cost(self.W)
         costs.append(cost)
-        # self.iterations.append(i)
         for i in range(self.max_iters):
             dW = self.grad(self.W)
             if self.check(dW):
                 break
             cost = costs[-1]
-            t = 1
+            t = 2
             while cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-6:
                 self.inner_count += 1
                 t = 0.5 * t
                 self.W = self.W - t*np.dot(inv_h, dW)
                 cost = self.cost(self.W)
             costs.append(cost)
-            # self.iterations.append(i)
         return costs
 
     def predict(self,X):

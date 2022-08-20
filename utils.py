@@ -11,3 +11,13 @@ def load_data(file_name):
     X = np.concatenate((X, col), axis=1)
     y = y/1e6
     return X, y
+
+def save_data(reg, X,y):
+    algs = ['bg','bgd','acc','bac','nt','bnt']
+    d = {}
+    for a in algs:
+        d[a] = reg.fit(X,y,a)
+    df = pd.DataFrame(data=d)
+    file_name = 'output_cost4.csv'
+    df.to_csv(file_name, index=False)
+

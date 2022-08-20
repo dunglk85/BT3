@@ -16,18 +16,6 @@ if __name__ == '__main__':
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
     print(f"X_train:{X_train.shape}\ny_train:{y_train.shape}")
-    w_init = np.random.random(X_train.shape[1])
-    regressor = Regressor(w_init)
-
-    algs=['gd','bgd','acc','bac','nt','bnt']
-    algs = ['nt','bnt']
-    min = 0
-    max = 1
-    for a in algs:
-        start = time.time()
-        costs = regressor.fit(X_train,y_train,a)
-        end = time.time()
-        label=("Algorithm"+ a)
-        plt.plot(range(len(costs)), costs, label=a)
-    plt.legend(algs)
-    plt.show()
+    w_init = np.repeat(0, X_train.shape[1]).reshape((X_train.shape[1],))
+    regressor = Regressor(w_init,check_stop=False)
+    save_data(regressor,X_train,y_train)
