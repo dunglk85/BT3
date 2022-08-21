@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from numpy import linalg
 
 class Regressor():
-    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=100000, check_stop = True):
+    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=1000000, check_stop = True):
         self.W = w_init
         self.lr = learning_rate
         self.tol = tol
