@@ -78,7 +78,7 @@ class Regressor():
                 break
             self.W = self.W - self.lr * dW.T
             next_cost = self.cost(self.W)
-            t = self.lr
+            t = 1
             while next_cost > costs[-1] - 0.5*t * self.square_norm and t > 1e-8:
                 self.inner_count += 1
                 t = 0.5*t

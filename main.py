@@ -19,7 +19,7 @@ if __name__ == '__main__':
     w_init = np.repeat(0, X_train.shape[1]).reshape((X_train.shape[1],))
     algs = ['gd','bgd','acc','bac','nt','bnt']
     for a in algs:
-        lrs = [0.2, 0.5]
+        lrs = [0.1]
         for lr in lrs:
             regressor = Regressor(w_init, learning_rate=lr, check_stop=False, max_iters=10000)
             save_cost_al(regressor, X_train, y_train, a)
