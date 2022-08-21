@@ -19,7 +19,7 @@ class Regressor():
         self.ATb = None
         self.btb = None
         self.check_stop = check_stop
-
+        np.random.seed(42)
     def cost(self, w):
         return np.dot(np.dot(w.T, self.H), w)/2 - np.dot(w.T, self.ATb) + self.btb/2
     def grad(self, w):
@@ -41,6 +41,7 @@ class Regressor():
 
 
     def fit(self, X, y, solver='gd'):
+        self.square_norm = None
         if solver == 'bgd':
             return self.back_tracking_gradient(X,y)
         elif solver == 'acc':
