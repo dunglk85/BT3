@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 from numpy import linalg
 
 class Regressor():
-    def __init__(self, w_init, learning_rate=0.1, tol=1e-6, max_iters=1000000, check_stop = True):
-        self.W = w_init
+    def __init__(self, learning_rate=0.1, tol=1e-6, max_iters=100000, check_stop = True):
         self.lr = learning_rate
         self.tol = tol
         self.check_af = 10
@@ -40,8 +39,9 @@ class Regressor():
         return False
 
 
-    def fit(self, X, y, solver='gd'):
+    def fit(self, X, y, w_init,solver='gd'):
         self.square_norm = None
+        self.W = w_init
         if solver == 'bgd':
             return self.back_tracking_gradient(X,y)
         elif solver == 'acc':

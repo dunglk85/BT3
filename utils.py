@@ -15,19 +15,19 @@ def load_data(file_name):
     y = y/1e6
     return X, y
 
-def save_data(reg, X,y, algs):
+def save_data(reg, X,y,w_init, algs):
     d = {}
     for a in algs:
-        d[a] = reg.fit(X,y,a)
+        d[a] = reg.fit(X, y, w_init, a)
     df = pd.DataFrame(data=d)
     file_name = f'Ouput/cost_lr_{reg.lr}.csv'
     df.to_csv(file_name, index=False)
 
-def save_info(reg, X,y, algs):
+def save_info(reg, X,y,w_init, algs):
     df = pd.DataFrame()
     for a in algs:
         start = time.time()
-        costs = reg.fit(X,y,a)
+        costs = reg.fit(X,y,w_init,a)
         end = time.time()
         score = reg.score(X,y)
         col = [costs[-1], math.sqrt(reg.square_norm), end - start, len(costs), reg.inner_count,score]
