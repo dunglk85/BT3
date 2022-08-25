@@ -21,6 +21,8 @@ if __name__ == '__main__':
     algs = ['gd','bgd','acc','bac','nt','bnt']
     lrs = [0.1, 0.05, 0.02]
     for l in lrs:
-        regressor = Regressor(learning_rate=l, check_stop=True, tol=1e-4, max_iters=1000000)
+        regressor = Regressor(learning_rate=l, check_stop=False, tol=1e-4, max_iters=10000)
+        save_data(regressor, X_train, y_train, w_init, algs)
+        regressor = Regressor(learning_rate=l, check_stop=True, tol=1e-4)
         save_info(regressor, X_train, y_train, w_init, algs)
 
