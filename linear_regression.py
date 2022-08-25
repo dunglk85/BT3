@@ -110,20 +110,20 @@ class Regressor():
         cost = self.cost(self.W)
         costs.append(cost)
         pre_W = self.W
-
+        t=1
         for i in range(self.max_iters):
             v = self.W + i * (self.W - pre_W)/ (i + 3)
             dV = self.grad(v)
             if self.check(dV):
                 break
             pre_W = self.W
-            self.W = self.W - self.lr * dV.T
+            self.W = v - self.lr * dV.T
             next_cost = self.cost(self.W)
-            t = 1/(i+1)
+            # t = 1/(i+1)
             while next_cost > costs[-1] - 0.5 * t * self.square_norm and t > 1e-8:
                 self.inner_count += 1
-                t = 0.8 * t
-                self.W = self.W - t * dV.T
+                t = 0.5 * t
+                self.W = v - t * dV.T
                 next_cost = self.cost(self.W)
             costs.append(next_cost)
         return costs
