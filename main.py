@@ -19,7 +19,7 @@ if __name__ == '__main__':
     print(f"X_train:{X_train.shape}\ny_train:{y_train.shape}")
     w_init = np.repeat(0, X_train.shape[1]).reshape((X_train.shape[1],))
     algs = ['gd','bgd','acc','bac','nt','bnt']
-    lrs = [0.1, 0.05, 0.02]
+    lrs = [0.2, 0.1, 0.05, 0.02]
     for l in lrs:
         regressor = Regressor(learning_rate=l, check_stop=False, tol=1e-4, max_iters=10000)
         save_data(regressor, X_train, y_train, w_init, algs)
