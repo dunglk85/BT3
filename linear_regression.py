@@ -136,7 +136,7 @@ class Regressor():
             dW = self.grad(self.W)
             if self.check(dW):
                 break
-            p = linalg.solve(self.H/self.m, dW)
+            p = linalg.solve(self.H, dW*self.m)
             self.W = self.W - p
         return costs
 
@@ -151,7 +151,7 @@ class Regressor():
             dW = self.grad(self.W)
             if self.check(dW):
                 break
-            p = linalg.solve(self.H/self.m, dW)
+            p = linalg.solve(self.H, dW*self.m)
             self.W = self.W - p
             next_cost = self.cost(self.W)
             t = 1
